@@ -1,0 +1,2 @@
+# ComfyUI-MobileFriendly Dependencies
+# No additional dependencies required - pure CSS/JS injection
