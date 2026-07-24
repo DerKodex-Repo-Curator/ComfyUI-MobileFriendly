@@ -7,7 +7,6 @@
 
 import { app } from "../../../scripts/app.js";
 
-console.log('[MobileFriendly] Extension loading - v14.1 (isMobile scope fix)');
 
 const MOBILE_FRIENDLY_CSS = `
 /* ================================================
@@ -736,7 +735,6 @@ app.registerExtension({
   name: "comfyui.mobilefriendly",
 
   init() {
-    console.log('[MobileFriendly] Extension init() called - v14.1');
 
     // ================================================
     // MOBILE DETECTION (defined BEFORE try block for global scope)
@@ -754,41 +752,13 @@ app.registerExtension({
       style.textContent = MOBILE_FRIENDLY_CSS;
       document.head.appendChild(style);
 
-      console.log('[MobileFriendly] ✓ CSS injected successfully');
 
     // ================================================
     // SIDEBAR TOGGLE - COMPREHENSIVE MULTI-PRONGED APPROACH
     // ================================================
-    console.log('[MobileFriendly] ========================================');
-    console.log('[MobileFriendly] SIDEBAR TOGGLE INIT STARTING');
-    console.log('[MobileFriendly] isMobile:', isMobile());
-    console.log('[MobileFriendly] ========================================');
 
     const setupSidebarToggle = () => {
-      console.log('[MobileFriendly] setupSidebarToggle() called');
-
-      // VISIBLE DEBUG for iPhone
-      const showDebug = (msg) => {
-        let dbg = document.getElementById('mf-sidebar-debug');
-        if (!dbg) {
-          dbg = document.createElement('div');
-          dbg.id = 'mf-sidebar-debug';
-          dbg.style.cssText = 'position:fixed;top:60px;right:5px;background:purple;color:white;padding:4px 8px;font-size:9px;z-index:999999;border-radius:4px;max-width:150px;';
-          document.body.appendChild(dbg);
-        }
-        dbg.textContent = msg;
-      };
-
-      showDebug('Toggle: called');
-
-      if (!isMobile()) {
-        showDebug('Toggle: NOT mobile!');
-        console.log('[MobileFriendly] Not mobile, skipping sidebar toggle');
-        return;
-      }
-
-      showDebug('Toggle: IS mobile');
-      console.log('[MobileFriendly] IS MOBILE - proceeding with setup');
+      if (!isMobile()) return;
 
       let collapseTimer = null;
       const COLLAPSE_DELAY = 10000; // 10 seconds
@@ -810,7 +780,6 @@ app.registerExtension({
           overlayDiv.style.display = 'block';
         }
 
-        console.log('[MobileFriendly] ✓ Sidebar collapsed');
       };
 
       // Function to expand sidebar
@@ -826,7 +795,6 @@ app.registerExtension({
           overlayDiv.style.display = 'none';
         }
 
-        console.log('[MobileFriendly] ✓ Sidebar expanded');
       };
 
       // Start/restart collapse timer
@@ -834,7 +802,6 @@ app.registerExtension({
         if (collapseTimer) clearTimeout(collapseTimer);
         collapseTimer = setTimeout(() => {
           collapseSidebar();
-          console.log('[MobileFriendly] ⏱ Auto-collapsed after 10s inactivity');
         }, COLLAPSE_DELAY);
       };
 
@@ -848,11 +815,9 @@ app.registerExtension({
 
       // PRONG 1: Create transparent overlay to intercept clicks
       const createOverlay = (toggleButton) => {
-        console.log('[MobileFriendly] Creating transparent overlay interceptor');
 
         // Get the actual button position and size
         const rect = toggleButton.getBoundingClientRect();
-        console.log('[MobileFriendly] Button rect:', rect.top, rect.left, rect.width, rect.height);
 
         // DEBUG: Show alert with button position
         // alert('Overlay at: ' + rect.top + ',' + rect.left + ' size: ' + rect.width + 'x' + rect.height);
@@ -866,18 +831,13 @@ app.registerExtension({
           width: ${Math.max(rect.width, 50)}px !important;
           height: ${Math.max(rect.height, 50)}px !important;
           z-index: 999998 !important;
-          background: rgba(255,0,0,0.5) !important;
+          background: transparent !important;
           cursor: pointer !important;
           display: block !important;
-          border: 3px solid yellow !important;
         `;
-
-        // Add visible text for debugging
-        overlayDiv.innerHTML = '<span style="color:white;font-size:10px;">TAP</span>';
 
         // Overlay click handler - expand sidebar
         const overlayClickHandler = (e) => {
-          console.log('[MobileFriendly] 🎯 OVERLAY CLICKED!');
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -891,12 +851,10 @@ app.registerExtension({
         overlayDiv.addEventListener('mousedown', overlayClickHandler, { capture: true });
 
         document.body.appendChild(overlayDiv);
-        console.log('[MobileFriendly] ✓ Overlay created and attached');
       };
 
       // PRONG 2: Setup with comprehensive error checking
       const attemptSetup = () => {
-        console.log('[MobileFriendly] attemptSetup() - looking for sidebar...');
         showDebug('Setup: looking...');
 
         // Try multiple selectors for sidebar (ComfyUI uses .side-bar-container)
@@ -920,32 +878,25 @@ app.registerExtension({
 
         if (!sidebar) {
           showDebug('Setup: NO sidebar!');
-          console.log('[MobileFriendly] ✗ Sidebar not found yet');
           return false;
         }
-        console.log('[MobileFriendly] ✓ Sidebar found:', sidebar);
 
         const buttons = sidebar.querySelectorAll('.side-bar-button');
-        console.log('[MobileFriendly] Found', buttons.length, 'buttons');
         showDebug('Setup: ' + buttons.length + ' btns');
 
         if (buttons.length === 0) {
           showDebug('Setup: 0 buttons!');
-          console.log('[MobileFriendly] ✗ No buttons found yet');
           return false;
         }
 
         const toggleButton = buttons[0];
         if (!toggleButton) {
           showDebug('Setup: btn null!');
-          console.log('[MobileFriendly] ✗ First button is null');
           return false;
         }
-        console.log('[MobileFriendly] ✓ First button (C icon):', toggleButton);
 
         if (toggleButton.dataset.mfToggleSetup === 'true') {
           showDebug('Setup: already done');
-          console.log('[MobileFriendly] Already setup, skipping');
           return true;
         }
 
@@ -963,7 +914,6 @@ app.registerExtension({
           if (sidebar && sidebar.classList.contains('mf-expanded')) {
             if (!sidebar.contains(e.target) && !overlayDiv.contains(e.target)) {
               collapseSidebar();
-              console.log('[MobileFriendly] Collapsed by clicking outside');
             }
           }
         }, true);
@@ -978,9 +928,6 @@ app.registerExtension({
 
         // Ensure sidebar starts collapsed
         sidebar.classList.remove('mf-expanded');
-        console.log('[MobileFriendly] ========================================');
-        console.log('[MobileFriendly] ✓✓✓ SETUP COMPLETE - SIDEBAR COLLAPSED');
-        console.log('[MobileFriendly] ========================================');
         return true;
       };
 
@@ -988,7 +935,6 @@ app.registerExtension({
       const observer = new MutationObserver((mutations) => {
         const sidebar = document.querySelector('.side-bar-container');
         if (sidebar && !sidebar.dataset.mfObserved) {
-          console.log('[MobileFriendly] MutationObserver detected sidebar!');
           sidebar.dataset.mfObserved = 'true';
           attemptSetup();
         }
@@ -999,10 +945,8 @@ app.registerExtension({
         childList: true,
         subtree: true
       });
-      console.log('[MobileFriendly] MutationObserver started');
 
       // Try immediately
-      console.log('[MobileFriendly] Trying immediate setup...');
       if (attemptSetup()) {
         observer.disconnect();
         return;
@@ -1012,11 +956,9 @@ app.registerExtension({
       let attempts = 0;
       const maxAttempts = 30;
       const setupInterval = setInterval(() => {
-        console.log('[MobileFriendly] Retry attempt', attempts + 1, '/', maxAttempts);
         if (attemptSetup()) {
           clearInterval(setupInterval);
           observer.disconnect();
-          console.log('[MobileFriendly] Setup successful on retry!');
         } else if (attempts >= maxAttempts) {
           clearInterval(setupInterval);
           observer.disconnect();
@@ -1028,7 +970,6 @@ app.registerExtension({
 
       // Run sidebar setup IMMEDIATELY
       // ENABLED: Sidebar toggle
-      console.log('[MobileFriendly] Starting sidebar setup...');
       setupSidebarToggle();
 
     } catch (error) {
@@ -1037,9 +978,6 @@ app.registerExtension({
       alert('MobileFriendly Extension Error: ' + error.message);
     }
 
-    console.log('='.repeat(80));
-    console.log('MOBILEFRIENDLY EXTENSION INIT() COMPLETED');
-    console.log('='.repeat(80));
 
     // ================================================
     // PREVENT BROWSER ZOOM (allow only canvas zoom)
@@ -1055,7 +993,6 @@ app.registerExtension({
       }
       // Set viewport to prevent user scaling
       viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-      console.log('[MobileFriendly] Viewport meta set to prevent zoom');
     };
     setupViewport();
 
@@ -1116,7 +1053,6 @@ app.registerExtension({
       });
     }
     preventPinchZoom();
-    console.log('[MobileFriendly] Browser zoom prevention enabled');
 
     // ================================================
     // MOBILE ZOOM SLIDER (replaces text input)
@@ -1214,7 +1150,6 @@ app.registerExtension({
             });
           }
         } catch (e) {
-          console.log('[MobileFriendly] setZoom error:', e);
         }
         valueDisplay.textContent = Math.round(percent) + '%';
         slider.value = percent;
@@ -1284,7 +1219,6 @@ app.registerExtension({
           e.stopPropagation();
           e.stopImmediatePropagation();
           openOverlay();
-          console.log('[MobileFriendly] Zoom slider shown');
           return false;
         };
 
@@ -1293,7 +1227,6 @@ app.registerExtension({
         // Also intercept pointerup/touchend which trigger on mobile
         zoomBtn.addEventListener('pointerup', blockNative, { capture: true });
 
-        console.log('[MobileFriendly] Intercepted zoom controls button');
         return true;
       };
 
@@ -1367,7 +1300,6 @@ app.registerExtension({
         // Simplified text - just version number
         badge.textContent = `MF${VERSION}`;
         document.body.appendChild(badge);
-        console.log('[MobileFriendly]', VERSION, stats);
       }
     };
 
@@ -1389,7 +1321,6 @@ app.registerExtension({
           el.style.cssText = 'display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;height:0!important;max-height:0!important;overflow:hidden!important;position:absolute!important;left:-9999px!important;';
           stats.removed++;
           stats.hidden.push(reason.substring(0, 15));
-          console.log('[MF] HIDDEN:', reason);
           return true;
         } catch (e) {
           return false;
@@ -1430,7 +1361,6 @@ app.registerExtension({
         return false;
       };
 
-      console.log('[MF] === v4.5 JS-only hiding (no CSS blanket rules) ===');
 
       // ========================================
       // STRATEGY 0: Hide breadcrumb and "Idle" status elements
@@ -1496,7 +1426,6 @@ app.registerExtension({
       const tabLabels = document.querySelectorAll('.workflow-label');
       stats.hidden.push('tabs:' + tabLabels.length);
 
-      console.log('[MF] Done R:', stats.removed, 'F:', stats.found, 'H:', stats.hidden);
     };
 
     // Run and update badge
@@ -1511,13 +1440,11 @@ app.registerExtension({
     // Run on DOMContentLoaded
     document.addEventListener('DOMContentLoaded', () => {
       runHideAndBadge();
-      console.log('[MobileFriendly] DOM ready');
     });
 
     // Run on load (after all resources)
     window.addEventListener('load', () => {
       runHideAndBadge();
-      console.log('[MobileFriendly] Window loaded');
     });
 
     // Keep running every 500ms for first 30 seconds to catch Vue renders
@@ -1528,7 +1455,6 @@ app.registerExtension({
       attempts++;
       if (attempts >= maxAttempts) {
         clearInterval(interval);
-        console.log('[MobileFriendly] Stopped periodic hiding after 30s');
       }
     }, 500);
 
@@ -1537,7 +1463,6 @@ app.registerExtension({
       if (document.body) {
         const observer = new MutationObserver(() => hideElements());
         observer.observe(document.body, { childList: true, subtree: true });
-        console.log('[MobileFriendly] MutationObserver active');
       } else {
         setTimeout(startObserving, 100);
       }
@@ -1576,7 +1501,6 @@ app.registerExtension({
                 inputs.forEach(input => {
                   if (document.activeElement === input) {
                     input.blur();
-                    console.log('[MobileFriendly] Blurred auto-focused input:', input.placeholder || input.className);
                   }
                 });
               }, 50);
@@ -1588,7 +1512,6 @@ app.registerExtension({
                   const inSidebar = input.closest('.p-sidebar, .side-bar-panel');
                   if (inSidebar) {
                     input.blur();
-                    console.log('[MobileFriendly] Blurred sidebar input on focus');
                   }
                 }
               }, 100);
@@ -1599,12 +1522,10 @@ app.registerExtension({
 
       if (document.body) {
         sidebarObserver.observe(document.body, { childList: true, subtree: true });
-        console.log('[MobileFriendly] Search auto-focus prevention enabled (iPhone)');
       }
     };
     preventSearchAutoFocus();
 
-    console.log('[MobileFriendly] AGGRESSIVE JavaScript hiding enabled, isMobile:', isMobile());
 
     // ================================================
     // LONG-PRESS TO MOVE NODES (mobile/tablet)
@@ -1765,7 +1686,6 @@ app.registerExtension({
           pinNode(node);
           count++;
         }
-        console.log('[MobileFriendly] Pinned', count, 'existing nodes');
         return count;
       };
 
@@ -1825,11 +1745,9 @@ app.registerExtension({
             node.flags.pinned = true;
           }
 
-          console.log('[MobileFriendly] Serialized workflow (stripped', nodeStates.length, 'pinned flags)');
           return result;
         };
 
-        console.log('[MobileFriendly] Patched graph.serialize to strip pinned flags');
         return true;
       };
 
@@ -1839,119 +1757,16 @@ app.registerExtension({
       const getNodeAtPosition = (clientX, clientY) => {
         try {
           const gc = app?.canvas;
-          if (!gc?.graph) return { node: null, debug: 'No graph' };
-
+          if (!gc?.graph) return { node: null };
           const canvasEl = document.querySelector('canvas');
-          if (!canvasEl) return { node: null, debug: 'No canvas' };
-
+          if (!canvasEl) return { node: null };
           const rect = canvasEl.getBoundingClientRect();
           const scale = gc.ds?.scale || 1;
           const offset = gc.ds?.offset || [0, 0];
-
-          // Touch position relative to canvas
-          const touchX = clientX - rect.left;
-          const touchY = clientY - rect.top;
-
-          // v11.7 DEBUG: Show touch info
-          const showHitDebug = (msg) => {
-            let dbg = document.getElementById('mf-hit-debug');
-            if (!dbg) {
-              dbg = document.createElement('div');
-              dbg.id = 'mf-hit-debug';
-              dbg.style.cssText = `
-                position: fixed; top: 40px; right: 10px;
-                background: rgba(255, 100, 0, 0.95); color: white;
-                padding: 8px 12px; border-radius: 6px;
-                font-size: 10px; z-index: 999999;
-                font-family: monospace; max-width: 200px;
-                word-wrap: break-word; line-height: 1.4;
-              `;
-              document.body.appendChild(dbg);
-            }
-            dbg.innerHTML = msg;
-            clearTimeout(dbg._timer);
-            dbg._timer = setTimeout(() => { dbg.innerHTML = ''; }, 5000);
-          };
-
-          const nodes = gc.graph._nodes || [];
-          if (nodes.length === 0) return { node: null, debug: 'No nodes' };
-
-          // Try multiple transform formulas to find which works
-          // For each node, calculate where it appears on screen
-
-          // Collect all matches for debug
-          const matches = [];
-
-          for (const n of nodes) {
-            if (!n.pos || !n.size) continue;
-
-            const gx = n.pos[0];
-            const gy = n.pos[1];
-            const gw = n.size[0];
-            const gh = n.size[1];
-            const nodeTitle = n.title || n.type || `#${n.id}`;
-
-            // Formula 1: screenPos = graphPos * scale + offset
-            const s1_x = gx * scale + offset[0];
-            const s1_y = gy * scale + offset[1];
-            const s1_w = gw * scale;
-            const s1_h = gh * scale;
-
-            if (touchX >= s1_x && touchX <= s1_x + s1_w &&
-                touchY >= s1_y && touchY <= s1_y + s1_h) {
-              matches.push({ node: n, formula: 'F1', title: nodeTitle });
-            }
-
-            // Formula 2: screenPos = (graphPos + offset) * scale
-            const s2_x = (gx + offset[0]) * scale;
-            const s2_y = (gy + offset[1]) * scale;
-            const s2_w = gw * scale;
-            const s2_h = gh * scale;
-
-            if (touchX >= s2_x && touchX <= s2_x + s2_w &&
-                touchY >= s2_y && touchY <= s2_y + s2_h) {
-              matches.push({ node: n, formula: 'F2', title: nodeTitle });
-            }
-
-            // Formula 3: screenPos = graphPos * scale - offset
-            const s3_x = gx * scale - offset[0];
-            const s3_y = gy * scale - offset[1];
-            const s3_w = gw * scale;
-            const s3_h = gh * scale;
-
-            if (touchX >= s3_x && touchX <= s3_x + s3_w &&
-                touchY >= s3_y && touchY <= s3_y + s3_h) {
-              matches.push({ node: n, formula: 'F3', title: nodeTitle });
-            }
-
-            // Formula 4: screenPos = (graphPos - offset) * scale
-            const s4_x = (gx - offset[0]) * scale;
-            const s4_y = (gy - offset[1]) * scale;
-            const s4_w = gw * scale;
-            const s4_h = gh * scale;
-
-            if (touchX >= s4_x && touchX <= s4_x + s4_w &&
-                touchY >= s4_y && touchY <= s4_y + s4_h) {
-              matches.push({ node: n, formula: 'F4', title: nodeTitle });
-            }
-          }
-
-          // v11.7 DEBUG: Show all matches
-          if (matches.length > 0) {
-            const debugInfo = `Touch: ${Math.round(touchX)},${Math.round(touchY)}<br>` +
-              `Scale: ${scale.toFixed(2)} Off: ${Math.round(offset[0])},${Math.round(offset[1])}<br>` +
-              `Matches (${matches.length}):<br>` +
-              matches.map(m => `${m.formula}: ${m.title}`).join('<br>');
-            showHitDebug(debugInfo);
-
-            // Return first F2 match (the correct formula), or first match if no F2
-            const f2Match = matches.find(m => m.formula === 'F2');
-            if (f2Match) return { node: f2Match.node, formula: 'F2' };
-            return { node: matches[0].node, formula: matches[0].formula };
-          }
-
-          showHitDebug(`No match at ${Math.round(touchX)},${Math.round(touchY)}<br>Scale: ${scale.toFixed(2)}<br>Nodes: ${nodes.length}`);
-          return { node: null };
+          const graphX = (clientX - rect.left) / scale - offset[0];
+          const graphY = (clientY - rect.top) / scale - offset[1];
+          const node = gc.getNodeOnPos(graphX, graphY);
+          return { node: node || null };
         } catch (e) {
           return { node: null };
         }
@@ -2063,8 +1878,20 @@ app.registerExtension({
 
         // TOUCHMOVE on document
         document.addEventListener('touchmove', (e) => {
-          // If already unlocked, let them drag freely!
-          if (state.wasUnpinned) return;
+          if (state.wasUnpinned) {
+            const touch = e.touches[0];
+            const canvas = document.querySelector('canvas');
+            if (canvas && touch) {
+              canvas.dispatchEvent(new MouseEvent('mousemove', {
+                bubbles: true,
+                cancelable: true,
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                buttons: 1,
+              }));
+            }
+            return;
+          }
 
           // If no active timer/node, nothing to do
           if (!state.timer || !state.activeNode) return;
@@ -2082,7 +1909,21 @@ app.registerExtension({
         }, { capture: true, passive: true });
 
         // TOUCHEND on document
-        document.addEventListener('touchend', () => {
+        document.addEventListener('touchend', (e) => {
+          if (state.wasUnpinned) {
+            const canvas = document.querySelector('canvas');
+            if (canvas) {
+              const lastTouch = e.changedTouches?.[0];
+              canvas.dispatchEvent(new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                clientX: lastTouch?.clientX ?? 0,
+                clientY: lastTouch?.clientY ?? 0,
+                buttons: 0,
+              }));
+            }
+          }
+
           if (state.timer) {
             clearTimeout(state.timer);
             state.timer = null;
@@ -2133,7 +1974,6 @@ app.registerExtension({
           state.wasUnpinned = false;
         }, { capture: true, passive: true });
 
-        console.log('[MobileFriendly] Long-press touch handlers ready');
         return true;
       };
 
@@ -2167,7 +2007,7 @@ app.registerExtension({
         // v11.7: Periodic sweep for orphaned unpinned nodes
         // This catches nodes that got unpinned but lost tracking (edge cases)
         // Also catches newly added nodes that bypassed our add() patch
-        const orphanSweepInterval = setInterval(() => {
+        state.orphanSweepInterval = setInterval(() => {
           const graph = app?.graph;
           if (!graph?._nodes) return;
 
@@ -2179,7 +2019,6 @@ app.registerExtension({
             if (node.flags && node.flags.pinned === false) {
               if (state.unpinnedNode !== node) {
                 node.flags.pinned = true;
-                console.log('[MobileFriendly] Orphan sweep: re-pinned node', node.id);
               }
             }
             // Also pin nodes that have no flags at all (newly created)
@@ -2189,7 +2028,6 @@ app.registerExtension({
           }
         }, 2000); // Every 2 seconds
 
-        console.log('[MobileFriendly] Long-press pinning system ready (nodes only, groups excluded)');
         return true;
       };
 
@@ -2202,7 +2040,6 @@ app.registerExtension({
         attempts++;
       }, 200);
 
-      console.log('[MobileFriendly] Long-press-to-move initialized (v8.5 pinning mode)');
     };
     setupLongPressToMove();
 
@@ -2753,7 +2590,6 @@ app.registerExtension({
         const style = document.getElementById('mobilefriendly-styles');
         if (style) {
           style.disabled = !value;
-          console.log('[MobileFriendly] ' + (value ? 'Enabled' : 'Disabled'));
         }
       }
     });
@@ -2952,7 +2788,6 @@ app.registerExtension({
           };
         });
 
-        console.log('[MobileFriendly] Menu sidebar rendered with queue count feature');
       }
     });
 
@@ -2981,7 +2816,6 @@ app.registerExtension({
         const lastButton = buttons[buttons.length - 1];
         if (ourBtn !== lastButton) {
           sidebar.appendChild(ourBtn);
-          console.log('[MobileFriendly] Sidebar button moved to top (appended for column-reverse)');
         }
 
         return true;
@@ -3001,7 +2835,6 @@ app.registerExtension({
       sidebarAttempts++;
     }, 500);
 
-    console.log('[MobileFriendly] Extension setup complete');
   }
 });
 
