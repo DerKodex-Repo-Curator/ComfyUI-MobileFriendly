@@ -855,58 +855,27 @@ app.registerExtension({
 
       // PRONG 2: Setup with comprehensive error checking
       const attemptSetup = () => {
-        showDebug('Setup: looking...');
-
         // Try multiple selectors for sidebar (ComfyUI uses .side-bar-container)
         let sidebar = document.querySelector('.side-bar-container');
         if (!sidebar) sidebar = document.querySelector('[class*="side-bar-container"]');
         if (!sidebar) sidebar = document.querySelector('[class*="sidebar-tab"]');
         if (!sidebar) sidebar = document.querySelector('.comfyui-sidebar');
 
-        // Debug: show what we can find
-        const allDivs = document.querySelectorAll('div[class]');
-        let sidebarClasses = [];
-        allDivs.forEach(d => {
-          const cls = d.className.toString().toLowerCase();
-          if (cls.includes('side') || cls.includes('tool') || cls.includes('bar')) {
-            sidebarClasses.push(cls.substring(0, 30));
-          }
-        });
-        if (sidebarClasses.length > 0) {
-          showDebug('Found: ' + sidebarClasses.slice(0, 3).join(', '));
-        }
-
-        if (!sidebar) {
-          showDebug('Setup: NO sidebar!');
-          return false;
-        }
+        if (!sidebar) return false;
 
         const buttons = sidebar.querySelectorAll('.side-bar-button');
-        showDebug('Setup: ' + buttons.length + ' btns');
-
-        if (buttons.length === 0) {
-          showDebug('Setup: 0 buttons!');
-          return false;
-        }
+        if (buttons.length === 0) return false;
 
         const toggleButton = buttons[0];
-        if (!toggleButton) {
-          showDebug('Setup: btn null!');
-          return false;
-        }
+        if (!toggleButton) return false;
 
-        if (toggleButton.dataset.mfToggleSetup === 'true') {
-          showDebug('Setup: already done');
-          return true;
-        }
+        if (toggleButton.dataset.mfToggleSetup === 'true') return true;
 
         // Mark as setup
         toggleButton.dataset.mfToggleSetup = 'true';
-        showDebug('Setup: creating overlay');
 
         // Create overlay interceptor
         createOverlay(toggleButton);
-        showDebug('Setup: COMPLETE!');
 
         // PRONG 3: Click outside sidebar to collapse
         document.addEventListener('click', (e) => {
